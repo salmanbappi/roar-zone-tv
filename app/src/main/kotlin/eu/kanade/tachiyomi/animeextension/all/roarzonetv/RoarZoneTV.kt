@@ -19,7 +19,7 @@ class RoarZoneTV : Source(), ConfigurableAnimeSource {
     override val baseUrl = "https://tv.roarzone.net"
     override val lang = "all"
     override val supportsLatest = false
-    override val id: Long = 84769302158234569L // Incremented ID to avoid conflict with RoarZone
+    override val id: Long = 84769302158234569L
 
     override val client: OkHttpClient = network.client.newBuilder()
         .addInterceptor { chain ->
@@ -31,11 +31,11 @@ class RoarZoneTV : Source(), ConfigurableAnimeSource {
         }
         .build()
 
-    override suspend fun getPopularAnime(page: Int): AnimesPage {
+    private suspend fun fetchChannels(): List<SAnime> {
         val response = client.newCall(GET(baseUrl)).execute()
         val document = Jsoup.parse(response.body?.string() ?: "")
         
-        val animeList = document.select(".channel-card").map { element ->
+        return document.select(".channel-card").map { element ->
             SAnime.create().apply {
                 title = element.attr("data-title")
                 url = element.attr("data-stream")
@@ -44,15 +44,16 @@ class RoarZoneTV : Source(), ConfigurableAnimeSource {
                 initialized = true
             }
         }
-        
-        return AnimesPage(animeList, false)
+    }
+
+    override suspend fun getPopularAnime(page: Int): AnimesPage {
+        return AnimesPage(fetchChannels(), false)
     }
 
     override suspend fun getLatestUpdates(page: Int): AnimesPage = AnimesPage(emptyList(), false)
 
     override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage {
-        val allAnime = getPopularAnime(1).anime
-        val filtered = allAnime.filter { it.title.contains(query, ignoreCase = true) }
+        val filtered = fetchChannels().filter { it.title.contains(query, ignoreCase = true) }
         return AnimesPage(filtered, false)
     }
 
