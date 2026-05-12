@@ -1,0 +1,3 @@
+rootProject.name = "roarzonetv"
+include(":app")
+include(":core")

@@ -1,0 +1,67 @@
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+ext {
+    extVersionCode = 1000
+}
+
+android {
+    namespace = "eu.kanade.tachiyomi.animeextension.all.roarzonetv"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "eu.kanade.tachiyomi.animeextension.all.roarzonetv"
+        minSdk = 21
+        targetSdk = 34
+        versionCode extVersionCode
+        versionName "14.1.1000"
+
+        manifestPlaceholders = [
+            appName: "Roar zone tv",
+            extClass: ".RoarZoneTV",
+            nsfw: "0"
+        ]
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/kotlin']
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore.jks")
+            storePassword "ftpbd123"
+            keyAlias "dflix"
+            keyPassword "ftpbd123"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    implementation project(":core")
+    implementation libs.androidx.preference
+    compileOnly libs.bundles.provided
+    implementation libs.bundles.common
+}
