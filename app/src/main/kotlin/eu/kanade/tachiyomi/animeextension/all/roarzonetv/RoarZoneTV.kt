@@ -67,6 +67,7 @@ class RoarZoneTV : Source(), ConfigurableAnimeSource {
                         filtered = filtered.filter { it.genre?.contains(selectedCategory, ignoreCase = true) == true }
                     }
                 }
+                else -> {}
             }
         }
         
