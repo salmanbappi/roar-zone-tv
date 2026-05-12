@@ -53,7 +53,23 @@ class RoarZoneTV : Source(), ConfigurableAnimeSource {
     override suspend fun getLatestUpdates(page: Int): AnimesPage = AnimesPage(emptyList(), false)
 
     override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage {
-        val filtered = fetchChannels().filter { it.title.contains(query, ignoreCase = true) }
+        var filtered = fetchChannels()
+        
+        if (query.isNotBlank()) {
+            filtered = filtered.filter { it.title.contains(query, ignoreCase = true) }
+        }
+
+        filters.forEach { filter ->
+            when (filter) {
+                is CategoryFilter -> {
+                    val selectedCategory = filter.toValue()
+                    if (selectedCategory.isNotBlank()) {
+                        filtered = filtered.filter { it.genre?.contains(selectedCategory, ignoreCase = true) == true }
+                    }
+                }
+            }
+        }
+        
         return AnimesPage(filtered, false)
     }
 
@@ -84,7 +100,26 @@ class RoarZoneTV : Source(), ConfigurableAnimeSource {
         return listOf(Video(streamUrl, "Live Stream", streamUrl))
     }
 
-    override fun getFilterList(): AnimeFilterList = AnimeFilterList()
+    override fun getFilterList(): AnimeFilterList = AnimeFilterList(
+        CategoryFilter()
+    )
+
+    private class CategoryFilter : AnimeFilter.Select<String>(
+        "Category",
+        arrayOf("All", "Bangla", "Documentary", "English", "Hindi", "Indian Bangla", "Kids", "Music", "Sports")
+    ) {
+        fun toValue() = when (state) {
+            1 -> "bangla"
+            2 -> "documentary"
+            3 -> "english"
+            4 -> "hindi"
+            5 -> "inbangla"
+            6 -> "kids"
+            7 -> "music"
+            8 -> "sports"
+            else -> ""
+        }
+    }
 
     override fun setupPreferenceScreen(screen: PreferenceScreen) {}
 }
